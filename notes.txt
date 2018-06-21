@@ -1,0 +1,47 @@
+Funding and Account positions
+
+Next week presentations.
+
+acl_jwt token - jwt decoder, has user information inside it.
+it also has scope read/write
+roles grant permissions on features and functionality
+tags represent response_type
+
+Bank Accounts - Checquing and Saving accounts from external institutions
+denoted by account number, transit number, and institution number
+require verification of ownership to avoid
+
+Deposits
+-Rqequests for funds from your Bank Account to your Wealthsimple accountsDenoted by a client id, bank account id, and account id
+Has a status to indicatie
+W
+Withdrawals: More complicated because they have a tax implication.
+
+bank accounts - GET fetch a specific bank account based on the id
+will limit access using the lcient_id from the bearer token to match agaisnt the owners of the bank account.
+
+ownership
+bank accounts are....
+
+Deposits GET (index)
+
+URL: GET
+
+Deposits - POST (Create)
+200 resopinse good
+
+Account Vailes
+Daily values
+Positions  - Aggregate security value for the holdings of an account on a particular Daily
+Transactions - activities. Many types of transactions. not just buys and sells.
+
+Take Faily Values and get histories....
+
+get Transactions
+
+Previous Hackathons Ideas:
+Social INVESTING
+Alexa Integration
+gamification linked to your fitness. the more you work out the better.
+a swear Jar
+You dont have to make a bank again.

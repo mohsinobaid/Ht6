@@ -1,0 +1,550 @@
+<!--
+Use this same html and ajax requests to access the wealthsimple api's aswell.
+That could be more complex since... there would need to be 4 possibilities.
+It is programmable. just need to find the time.
+
+What is bootstrap?
+.header{
+  background-image: url('/img/3.png');
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center;
+  }
+********************
+
+but i still have to connect to the wealthsimple api. And hopefully there is an option to add or remove cash easily.
+
+-->
+
+<!doctype html>
+<html>
+  <head class="header">
+    <title>WelathSimple and Spotify Authorization</title>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <style type="text/css">
+
+
+
+
+
+        .navbar{
+        background:#F97300;
+        }
+        .nav-link , .navbar-brand{
+        color: #f4f4f4;
+        cursor: pointer;
+        }
+        .nav-link{
+        margin-right: 1em !important;
+        }
+        .nav-link:hover{
+        background: #f4f4f4;
+        color: #f97300;
+        }
+        .navbar-collapse{
+        justify-content: flex-end;
+        }
+        .navbar-toggler{
+        background:#fff !important;
+        }
+        .navbar-collapse{
+        justify-content: flex-end;
+        }
+        .bg-dark{
+        background-color:#343a40!important
+        }
+        .bg-primary{
+        background-color:#007bff!important
+        }
+
+
+      #login, #loggedin {
+
+        padding: 20px 50px 50px 50px;
+      }
+      .text-overflow {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 500px;
+      }
+      #bankloggedin{
+        /* background-color: lightgreen;*/
+        padding: 50px 50px 50px 50px !important;
+      }
+      #loggedin{
+        /*background-color: lightblue;*/
+        padding: 50px 50px 50px 50px !important;
+      }
+      #spotlogin, #banklogin{
+        padding-left: 30px;
+        padding-right: 300px;
+
+      }
+      .btn-space{
+        padding: 50px 50px 50px 50px !important;
+
+      }
+      #bigger{
+        text-size: 40;
+      }
+      #body{
+        background-image: url('/img/3.png');
+        background-attachment: fixed;
+        background-size: cover;
+        background-position: center;
+        color: black;
+      }
+
+    </style>
+  </head>
+
+  <body id="body">
+    <nav class="navbar navbar-expand-lg fixed-top bg-dark">
+       <a class="navbar-brand" href="#">Home</a>
+       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+         <span class="navbar-toggler-icon"></span>
+       </button>
+       <div class="collapse navbar-collapse " id="navbarSupportedContent">
+            <ul class="navbar-nav mr-4">
+
+              <li class="nav-item">
+                <a class="nav-link" href="#">About</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link " href="#">Portfolio</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link " href="#">Team</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link " href="#">Post</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link " href="#">Contact</a>
+              </li>
+            </ul>
+
+          </div>
+       </nav>
+
+
+
+
+
+    <div class="row" class="container">
+      <div class"col-md-6 btn-space" id="login">
+        <h1>WealthSimple and Spotify Authorization Code flow</h1>
+        <a href="https://staging.wealthsimple.com/oauth/authorize?client_id=2c6b0a3a90b9418b6adc9e133e76e651531e22c1e19069e06f6c7cca668aacda&redirect_uri=https://localhost:3000/auth&response_type=code&scope=read write" id="banklogin" class="col-md-6 btn btn-space btn-danger">Log in with WealthSimple</a>
+        <a href="/spot/login" id="spotlogin" class="col-md-6 btn btn-danger btn-space">Log in with Spotify</a>
+      </div>
+      <!--this is a div for the wealthsimple side.
+    I want to display a balance of an account. and have it refresh on the fly. that is important..-->
+      <div class="col-md-6" id="bankloggedin">
+        <div id="bank-user-profile">
+        </div>
+        <div id="bank-oauth">
+        </div>
+        <div>
+          <button class="btn btn-default" id="bank-obtain-new-token">Obtain a new WS token using the refresh token</button>
+        </div>
+        <div>
+          <h3>Todays Total: <span id="myText"></span></h3>
+        </div>
+      </div>
+      <!--position this on the right hand side of the screen-->
+      <div class="col-md-6" id="loggedin">
+        <div id="user-profile">
+        </div>
+        <div id="oauth">
+        </div>
+          <button class="btn btn-default" id="obtain-new-token">Obtain a new SP token using the refresh token</button>
+        <div id="song">
+        </div>
+      </div>
+    </div>
+
+
+
+
+
+
+    <script id="user-profile-template" type="text/x-handlebars-template">
+      <h1>Logged in as {{display_name}}</h1>
+      <div class="media">
+        <div class="pull-left">
+          <img class="media-object" width="150" src="{{images.0.url}}" />
+        </div>
+        <div class="media-body">
+          <dl class="dl-horizontal">
+            <dt>Display name</dt><dd class="clearfix">{{display_name}}</dd>
+            <dt>Id</dt><dd>{{id}}</dd>
+            <dt>Email</dt><dd>{{email}}</dd>
+            <dt>Spotify URI</dt><dd><a href="{{external_urls.spotify}}">{{external_urls.spotify}}</a></dd>
+            <dt>Link</dt><dd><a href="{{href}}">{{href}}</a></dd>
+            <dt>Profile Image</dt><dd class="clearfix"><a href="{{images.0.url}}">{{images.0.url}}</a></dd>
+            <dt>Country</dt><dd>{{country}}</dd>
+          </dl>
+        </div>
+      </div>
+    </script>
+
+    <script id="oauth-template" type="text/x-handlebars-template">
+      <h2>Spotify oAuth info</h2>
+      <dl class="dl-horizontal">
+        <dt>Access token</dt><dd class="text-overflow">{{access_token}}</dd>
+        <dt>Refresh token</dt><dd class="text-overflow">{{refresh_token}}</dd>
+      </dl>
+    </script>
+
+    <script id="song-template" type="text/x-handlebars-template">
+      <h3>Current Song:</h3>
+      <div class="pull-left">
+        <img class="song-media-object" width="150" src="{{img}}" />
+      </div>
+      <dl class="dl-horizontal">
+        <dt>Artist:</dt><dd class="text-overflow">{{artist}}</dd>
+        <dt>Song:</dt><dd class="text-overflow">{{song}}</dd>
+        <dt>Explicit:</dt><dd class="text-overflow">{{explicit}}</dd>
+      </dl>
+    </script>
+
+    <!--2 new scripts go here. The wealth simple one. -->
+    <script id="bank-profile-template" type="text/x-handlebars-template">
+      <h1>Logged in as Moss Que</h1>
+      <div class="bank-media">
+        <div class="bank-media-body">
+          <dl class="dl-horizontal">
+            <dt>Account</dt><dd class="bigger">RRSP</dd>
+            <dt>Balance</dt><dd class="bigger">{{Balance}}</dd>
+          </dl>
+        </div>
+      </div>
+    </script>
+
+    <script id="bank-oauth-template" type="text/x-handlebars-template">
+      <h2>Wealth Simple oAuth info</h2>
+      <dl class="dl-horizontal">
+        <dt>Access token</dt><dd class="text-overflow">{{baccess_token}}</dd>
+        <dt>Refresh token</dt><dd class="text-overflow">{{brefresh_token}}</dd>
+      </dl>
+    </script>
+
+    <!--<script src='/js/main.js' type="text/javascript"></script> -->
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script>
+      (function() {
+        /**
+         * Obtains parameters from the hash of the URL
+         * @return Object
+         */
+        function getHashParams() {
+          var hashParams = {};
+          var e, r = /([^&;=]+)=?([^&;]*)/g,
+              q = window.location.hash.substring(1);
+          while ( e = r.exec(q)) {
+             hashParams[e[1]] = decodeURIComponent(e[2]);
+          }
+          return hashParams;
+        }
+        console.log("trying something here");
+        //console.log('ID : ' + $('#bank-oauth').text());
+
+        //var trying = document.getElementsByClassName("elementa")[0].innerHTML;
+        //console.log(result);
+document.getElementById("myText").innerHTML = 0;
+        //Spotify
+        var userProfileSource = document.getElementById('user-profile-template').innerHTML,
+            userProfileTemplate = Handlebars.compile(userProfileSource),
+            userProfilePlaceholder = document.getElementById('user-profile');
+        var oauthSource = document.getElementById('oauth-template').innerHTML,
+            oauthTemplate = Handlebars.compile(oauthSource),
+            oauthPlaceholder = document.getElementById('oauth');
+        var songSource = document.getElementById('song-template').innerHTML,
+            songTemplate = Handlebars.compile(songSource),
+            songPlaceholder = document.getElementById('song');
+        //WealthSimple
+        var bankUserProfileSource = document.getElementById('bank-profile-template').innerHTML,
+            bankUserProfileTemplate = Handlebars.compile(bankUserProfileSource),
+            bankUserProfilePlaceholder = document.getElementById('bank-user-profile');
+        var bankOauthSource = document.getElementById('bank-oauth-template').innerHTML,
+            bankOauthTemplate = Handlebars.compile(bankOauthSource),
+            bankOauthPlaceholder = document.getElementById('bank-oauth');
+
+
+        var params = getHashParams();
+        var url = new URL(window.location.href);
+        var cody = url.searchParams.get("code");
+        var baccy = url.searchParams.get("baccess_token");
+        var myParam = location.search.split('baccess_token=')[1];
+        console.log("look " + myParam);
+        var access_token = params.access_token,
+            refresh_token = params.refresh_token,
+            baccess_token = params.baccess_token,
+            brefresh_token = params.brefresh_token,
+            error = params.error;
+            code = params.code;
+            var baccy2 = params.baccess_token;
+            console.log("look " + baccy2);
+
+        var WSbool = false;
+        var SPbool = false;
+        console.log("sanity check SP: " + localStorage.getItem("accessKey"));
+        console.log("sanity check WS: " + localStorage.getItem("baccessKey"));
+        console.log("the access token var is :" + access_token);
+
+
+        if(localStorage.getItem("accessKey")=="undefined" || localStorage.getItem("accessKey")==null){
+          console.log("the access key SP is being set noew");
+          localStorage.setItem("accessKey", access_token);
+          localStorage.setItem("refreshKey", refresh_token);
+        }
+        if(localStorage.getItem("baccessKey")==null && baccy2){
+          console.log("the access key WS is being set noew");
+          localStorage.setItem("baccessKey", baccess_token);
+          localStorage.setItem("brefreshKey", brefresh_token);
+        }
+        //And in any page (like when the page has loaded), get it like:
+        //var someVarName = localStorage.getItem("someVarKey");
+        console.log("SP acc = " + localStorage.getItem("accessKey"));
+        console.log("SP ref = " + localStorage.getItem("refreshKey"));
+        console.log("WS acc = " + localStorage.getItem("baccessKey"));
+        console.log("WS ref = " + localStorage.getItem("brefreshKey"));
+
+        if (error) {
+          alert('There was an error during the authentication');
+        } else {
+          //WEALTHSIMPLE
+          //If we allready have WS Keys's then display them.
+          if(baccy2!=="undefined"  && localStorage.getItem("baccessKey")==null){
+            console.log("we have WS keys");
+            console.log(localStorage.getItem("accessKey"));
+            bankOauthPlaceholder.innerHTML = bankOauthTemplate({
+              //changed this in the subway
+              //baccess_token: baccess_token,
+              //brefresh_token: brefresh_token
+              baccess_token: localStorage.getItem("baccessKey"),
+              brefresh_token: localStorage.getItem("brefreshKey")
+            });
+            //If we dont have them then, ask for them
+          }else if(baccy2 || access_token){
+          //If the url contains "baccess_token" then it has recieved the access token for wealthsimple.
+          //if(baccy2 && !WSbool){
+          //if(!WSbool){
+            console.log("We have bank code!");
+            bankOauthPlaceholder.innerHTML = bankOauthTemplate({
+              //changed this in the subway
+              //baccess_token: baccess_token,
+              //brefresh_token: brefresh_token
+              baccess_token: localStorage.getItem("baccessKey"),
+              brefresh_token: localStorage.getItem("brefreshKey")
+            });
+            var urlToken = "https://api.sandbox.wealthsimple.com/v1/oauth/token?client_id=2c6b0a3a90b9418b6adc9e133e76e651531e22c1e19069e06f6c7cca668aacda&client_secret=dd9e42acda3a07af972b29079120695910dcaf284cfa76e9d05786c60bb234d7&grant_type=authorization_code&redirect_uri=https://localhost:3000/auth&code=" + cody;
+            console.log("Your new url is: " + urlToken);
+
+            WSbool = true;
+            $('#banklogin').hide();
+            $('#bankloggedin').show();
+            $('#loggedin').hide();
+
+            $.ajax({
+                url: 'https://api.sandbox.wealthsimple.com/v1/accounts',
+                headers: {
+                  'Authorization': 'Bearer ' + localStorage.getItem("baccessKey")
+                },
+                success: function(error, response) {
+                  //userProfilePlaceholder.innerHTML = userProfileTemplate(response);
+                  console.log(error);
+                  console.log(response);
+                }
+            });
+            $.ajax({
+                url: 'https://api.sandbox.wealthsimple.com/v1/accounts/rrsp-yrig3s21',
+                headers: {
+                  'Authorization': 'Bearer ' + localStorage.getItem("baccessKey")
+                },
+                success: function(response) {
+                  //userProfilePlaceholder.innerHTML = userProfileTemplate(response);
+                  var amt = response.gross_position.amount;
+                  console.log(amt);
+                  bankUserProfilePlaceholder.innerHTML = bankUserProfileTemplate({
+                      Balance: amt
+                  });
+                }
+            });
+          //$('#currentsong').show();
+          //rrsp-yrig3s21
+          //tfsa-b8n6zf2q
+          //ca-hisa-gvp08tf
+        }
+        //If the url contains "access_token" then it has recienved the access token for spotify.
+        //SPOTIFY
+        if (access_token && !SPbool) {
+          console.log("we are in SP if")
+            // render oauth info
+            oauthPlaceholder.innerHTML = oauthTemplate({
+              //access_token: access_token,
+              //refresh_token: refresh_token
+              access_token: localStorage.getItem("accessKey"),
+              refresh_token: localStorage.getItem("refreshKey")
+            });
+            $.ajax({
+                url: 'https://api.spotify.com/v1/me',
+                headers: {
+                  'Authorization': 'Bearer ' + access_token
+                },
+                success: function(response) {
+                  userProfilePlaceholder.innerHTML = userProfileTemplate(response);
+                  console.log(response);
+                  $('#login').hide();
+                  $('#loggedin').show();
+                  $('#currentsong').show();
+                  $('#bankloggedin').show();
+                }
+            });
+            console.log("This worked tho...");
+            $.ajax({
+                url: 'https://api.spotify.com/v1/me/player/currently-playing',
+                headers: {
+                  'Authorization': 'Bearer ' + access_token
+                },
+                success: function(error, response, body) {
+                  //var amt = response.gross_position.amount;
+                  console.log(error);
+                  //if(error.status=="502"){
+                  //  console.log("AUDIO BOOK");
+                  //}
+                  console.log("WHAT THE FUCK IS GOING ON");
+                  console.log(response);
+                  console.log(body);
+                  console.log(error);
+                  console.log("Artist: " + error.item.artists[0].name);
+                  console.log("Song: " + error.item.name);
+                  var yesno;
+                  if(error.item.explicit){
+                    yesno = "YES";
+                  }else {
+                    yesno = "NO";
+                  }
+
+                  songPlaceholder.innerHTML = songTemplate({
+                    artist: error.item.artists[0].name,
+                      song: error.item.name,
+                      explicit: yesno,
+                      img : error.item.album.images[0].url
+                  });
+
+                  if(error.item.name == "F**kin' Problems"){
+                    var numb = document.getElementById("myText").innerHTML;
+                    console.log("were in");
+                    document.getElementById("myText").innerHTML = 99.95;
+                    setTimeout(function(){
+                    console.log("whatever");
+                  }, 1000);
+                    console.log("were in");
+                    document.getElementById("myText").innerHTML = 98.95;
+                    setTimeout(function(){
+                    console.log("whatever");
+                  }, 1000);
+                    document.getElementById("myText").innerHTML = 97.95;
+                    setTimeout(function(){
+                    console.log("whatever");
+                  }, 1000);
+                    document.getElementById("myText").innerHTML = 96.95;
+                  }
+
+                },
+                error: function(jqXHR, textStatus, errorThrown){
+                  console.log(jqXHR.status);
+                  console.log("AUDIO BOOK");
+/**
+                  $.ajax({
+                      url: 'https://api.sandbox.wealthsimple.com/v1/bank_accounts',
+                      headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem("baccessKey")
+                      },
+                      success: function(error, response) {
+                        //userProfilePlaceholder.innerHTML = userProfileTemplate(response);
+                        console.log(error);
+                        console.log(response);
+                      }
+                  });
+**/
+
+                  $.ajax({
+                      url: 'https://api.sandbox.wealthsimple.com/v1/deposits',
+                      type: 'POST',
+                      dataType: "json",
+                      headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem("baccessKey")
+                      },
+
+                      data:{
+                        "client_id": "2c6b0a3a90b9418b6adc9e133e76e651531e22c1e19069e06f6c7cca668aacda",
+                        "bank_account_id": "bank_account-CaNiH8NA9yM0ZKbDmZdKtn9nHkM",
+                        "account_id": "rrsp-yrig3s21",
+                        "amount": "100.95",
+                        "currency": "USD",
+                        "post_dated": "2017-06-21"
+                      },
+                      success: function(response) {
+                        userProfilePlaceholder.innerHTML = userProfileTemplate(response);
+                        console.log(response);
+
+                      },
+                      error: function(response){
+                        console.log(response);
+                        console.log("we are in this wierdo function");
+                            var number = "100.95";
+                      document.getElementById("myText").innerHTML = number;
+                      }
+                  });
+
+
+
+
+
+
+
+
+                }
+            });
+            SPbool = true;
+          //} else if(!access_token && !baccy2){
+          //} else if(!SPbool && !WSbool){
+          } else if(!SPbool && !WSbool){
+              // render initial screen
+              console.log("neither");
+              $('#login').show();
+              $('#loggedin').hide();
+              $('#bankloggedin').hide();
+
+              //$('#currentsong').hide();
+          }
+          document.getElementById('obtain-new-token').addEventListener('click', function() {
+            $.ajax({
+              url: '/refresh_token',
+              data: {
+                'refresh_token': refresh_token
+              }
+            }).done(function(data) {
+              access_token = data.access_token;
+              oauthPlaceholder.innerHTML = oauthTemplate({
+                access_token: access_token,
+                refresh_token: refresh_token
+              });
+            });
+          }, false);
+        }
+      })();
+
+
+
+    </script>
+
+
+  </body>
+</html>
